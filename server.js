@@ -1,5 +1,22 @@
 // server.js
-const cluster = require('cluster');
+const port = process.env.PORT || 3000;
+
+const fs = require('./file-server');
+const rs = require('./redirect-server');
+
+const express = require('express');
+const app = express();
+
+// 挂载 Express 实例
+app.use('/fs', fs);
+app.use('/rs', rs);
+
+app.listen(port, () => {
+    console.log(`Worker ${process.pid} started`);
+});
+
+
+/*const cluster = require('cluster');
 const os = require('os');
 const numCPUs = os.cpus().length;
 
@@ -30,4 +47,4 @@ if (cluster.isMaster) {
     app.listen(port, () => {
         console.log(`Worker ${process.pid} started`);
     });
-}
+}*/
