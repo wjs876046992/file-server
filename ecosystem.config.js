@@ -2,6 +2,7 @@ module.exports = {
     apps: [
         {
             "name": "bot_fs", // 项目名称
+            "cwd": "c:\\softwares\\file-server",
             "script": "server.js",
             "instances": "max",
             "exec_mode": "cluster",
