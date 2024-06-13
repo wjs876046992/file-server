@@ -5,6 +5,8 @@ const path = require('path');
 const { URL } = require('url');
 const { v4: uuidv4 } = require('uuid');
 
+const logger = require('./logger')
+
 // 文件存放位置，有需要的自行修改，需要和傻妞机器人、中转服务保持一致
 const FILE_SERVER_PATH = path.join(__dirname, 'wcf')
 
@@ -77,18 +79,18 @@ app.post('/download', async (req, res) => {
 
 
         writer.on('error', (err) => {
-            console.error('\nError writing file:', err);
-            res.status(500).json({ error: '\nError writing file: ' + err.message });
+            logger.error('Error writing file:', err);
+            res.status(500).json({ error: 'Error writing file: ' + err.message });
         });
     } catch (error) {
         if (error.response) {
-            console.error('\nError downloading file:', error.response.status, error.response.statusText);
+            logger.error('Error downloading file:', error.response.status, error.response.statusText);
             res.status(500).json({ error: 'Error downloading file: ' + error.response.statusText });
         } else if (error.request) {
-            console.error('\nError downloading file: No response received');
+            logger.error('Error downloading file: No response received');
             res.status(500).json({ error: 'Error downloading file: No response received' });
         } else {
-            console.error('\nError downloading file:', error.message);
+            logger.error('Error downloading file:', error.message);
             res.status(500).json({ error: 'Error downloading file: ' + error.message });
         }
     }
@@ -107,9 +109,9 @@ app.delete('/delete', (req, res) => {
         // 删除文件
         fs.unlink(filePath, (err) => {
             if (err) {
-                console.error(`\n[${filePath}] Error deleting file: `, err);
+                logger.error(`[${filePath}] Error deleting file: `, err);
             } else {
-                console.log(`\n[${filePath}] File deleted successfully`);
+                logger.debug(`[${filePath}] File deleted successfully`);
             }
         });
     }, 10 * 1000); // 2分钟的毫秒数

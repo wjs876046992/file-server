@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const getRawBody = require('raw-body');
 const jsonBigInt = require('json-bigint')({"storeAsString": true});
+const logger = require('./logger')
 
 // WCF 服务地址，不带/，一般就是本机地址了
 const WCF_SERVER_HOST = 'http://127.0.0.1:10010'
@@ -51,7 +52,7 @@ axiosInstance.interceptors.response.use(null, async (error) => {
 });
 
 app.post('/bot/wx-ferry', async (req, res) => {
-    console.log('\nwx ferry callback', req.text)
+    logger.debug('wx ferry callback', req.text)
     try {
         const body = jsonBigInt.parse(req.text);
         axiosInstance({
@@ -62,7 +63,7 @@ app.post('/bot/wx-ferry', async (req, res) => {
         });
         res.send({satus: 0, error: null})
     } catch (e) {
-        console.error('\n', e);
+        logger.error('', e);
         res.status(500).send({status: -1, error: '未知错误，请看转发器'});
     }
 });
@@ -77,7 +78,7 @@ app.post('/bot/redirect', async (req, res) => {
         data.id = BigInt(data.id)
     }
     const params = jsonBigInt.stringify(data)
-    console.log('\nreceive redirect from silly', path, params)
+    logger.debug('receive redirect from silly', path, params)
     try {
         const response =  await axiosInstance({
             url: `${WCF_SERVER_HOST}${path.indexOf('/') === 0 ? path : `/${path}`}`,
@@ -88,10 +89,10 @@ app.post('/bot/redirect', async (req, res) => {
             data: params,
             retry: true
         });
-        console.log('return silly', jsonBigInt.stringify(response.data))
+        logger.debug('return silly', jsonBigInt.stringify(response.data))
         res.send(response.data);
     } catch (error) {
-        console.error(error)
+        logger.error(error)
         res.status(500).send({status: -1, error: '未知错误，请看转发器'});
     }
 
