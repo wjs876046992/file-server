@@ -74,6 +74,17 @@ app.post('/download', async (req, res) => {
 
         writer.on('finish', () => {
             const absoluteFilePath = path.resolve(filePath);
+            logger.debug(`absoluteFilePath: ${absoluteFilePath}`)
+            setTimeout(() => {
+                // 删除文件
+                fs.unlink(absoluteFilePath, (err) => {
+                    if (err) {
+                        logger.error(`[${absoluteFilePath}] Error deleting file: `, err);
+                    } else {
+                        logger.debug(`[${absoluteFilePath}] File deleted successfully`);
+                    }
+                });
+            }, 10 * 1000); // 2分钟的毫秒数
             res.status(200).json({ message: 'File downloaded successfully', filePath: absoluteFilePath });
         });
 
@@ -96,7 +107,7 @@ app.post('/download', async (req, res) => {
     }
 });
 
-app.delete('/delete', (req, res) => {
+/*app.delete('/delete', (req, res) => {
     const filePath = req.body.filePath; // 从请求体中获取文件路径
 
     if (!filePath) {
@@ -115,7 +126,7 @@ app.delete('/delete', (req, res) => {
             }
         });
     }, 10 * 1000); // 2分钟的毫秒数
-});
+});*/
 
 
 module.exports = app;
