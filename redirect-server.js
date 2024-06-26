@@ -3,6 +3,8 @@ const axios = require('axios');
 const getRawBody = require('raw-body');
 const jsonBigInt = require('json-bigint')({"storeAsString": true});
 const logger = require('./logger')
+const fs = require('fs');
+const path = require('path');
 
 // WCF 服务地址，不带/，一般就是本机地址了
 const WCF_SERVER_HOST = 'http://127.0.0.1:10010'
@@ -70,7 +72,7 @@ app.post('/bot/wx-ferry', async (req, res) => {
 
 app.post('/bot/redirect', async (req, res) => {
     const {
-        method, path, data
+        method, path: apiPath, data
     } = jsonBigInt.parse(req.text);
 
     // 对data中的id进行处理
@@ -78,10 +80,10 @@ app.post('/bot/redirect', async (req, res) => {
         data.id = BigInt(data.id)
     }
     const params = jsonBigInt.stringify(data)
-    logger.debug('receive redirect from silly', path, params)
+    logger.debug('receive redirect from silly', apiPath, params)
     try {
         const response =  await axiosInstance({
-            url: `${WCF_SERVER_HOST}${path.indexOf('/') === 0 ? path : `/${path}`}`,
+            url: `${WCF_SERVER_HOST}${apiPath.indexOf('/') === 0 ? apiPath : `/${apiPath}`}`,
             method,
             headers: {
                 'Content-Type': 'application/json'
@@ -90,6 +92,20 @@ app.post('/bot/redirect', async (req, res) => {
             retry: true
         });
         logger.debug('return silly', jsonBigInt.stringify(response.data))
+        if (apiPath === '/save-image') {
+            const absoluteFilePath = path.resolve(response.data.data)
+            logger.debug(`absoluteFilePath: ${absoluteFilePath}`)
+            setTimeout(() => {
+                // 删除文件
+                fs.unlink(absoluteFilePath, (err) => {
+                    if (err) {
+                        logger.error(`[${absoluteFilePath}] Error deleting file: `, err);
+                    } else {
+                        logger.debug(`[${absoluteFilePath}] File deleted successfully`);
+                    }
+                });
+            }, 10 * 1000); // 2分钟的毫秒数
+        }
         res.send(response.data);
     } catch (error) {
         logger.error(error)
